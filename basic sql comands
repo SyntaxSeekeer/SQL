@@ -1,0 +1,104 @@
+-- 1. Připojení k databázi a výběr databáze
+-- Připojení k MySQL serveru (z příkazové řádky):
+mysql -u root -p
+
+-- Výběr databáze:
+USE nazev_databaze;
+
+-- Zobrazení existujících databází:
+SHOW DATABASES;
+
+-- 2. Práce s tabulkami (CREATE, ALTER, DELETE)
+-- Vytvoření tabulky Zamestnanec
+CREATE TABLE Zamestnanec (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    jmeno VARCHAR(50) NOT NULL,
+    pozice VARCHAR(50),
+    mzda DECIMAL(10,2) DEFAULT 0,
+    datum_nastupu DATE
+);
+
+-- Přidání nového sloupce do existující tabulky
+ALTER TABLE Zamestnanec ADD COLUMN telefon VARCHAR(20);
+
+-- Smazání tabulky
+DROP TABLE Zamestnanec;
+
+-- 3. Vlastnosti atributů
+-- Primární klíč vs. unikátní klíč
+ALTER TABLE Zamestnanec ADD CONSTRAINT unik_email UNIQUE (email);
+
+-- Výchozí hodnota sloupce
+ALTER TABLE Zamestnanec MODIFY mzda DECIMAL(10,2) DEFAULT 30000;
+
+-- 4. Vkládání a výběr dat (INSERT, SELECT, Agregační funkce)
+-- Vložení dat do tabulky
+INSERT INTO Zamestnanec (jmeno, pozice, mzda, datum_nastupu) VALUES
+('Adam Nový', 'Programátor', 55000, '2023-01-10'),
+('Jana Králová', 'HR', 48000, '2022-05-15'),
+('Petr Malý', 'Tester', 51000, '2021-09-22');
+
+-- Výběr všech zaměstnanců
+SELECT * FROM Zamestnanec;
+
+-- Výběr zaměstnanců s mzdou vyšší než 50 000
+SELECT * FROM Zamestnanec WHERE mzda > 50000;
+
+-- Použití agregačních funkcí
+SELECT COUNT(*) FROM Zamestnanec; -- Počet zaměstnanců
+SELECT AVG(mzda) FROM Zamestnanec; -- Průměrná mzda
+SELECT SUM(mzda) FROM Zamestnanec; -- Celková mzda
+SELECT MAX(mzda) FROM Zamestnanec; -- Nejvyšší mzda
+SELECT MIN(mzda) FROM Zamestnanec; -- Nejnižší mzda
+
+-- 5. Vztahy mezi tabulkami (1:1, 1:N, M:N)
+-- Vytvoření tabulek Zakaznik a Objednavka s relací 1:N
+CREATE TABLE Zakaznik (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    jmeno VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE
+);
+
+CREATE TABLE Objednavka (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    zakaznik_id INT,
+    cena DECIMAL(10,2),
+    datum_objednavky DATE,
+    FOREIGN KEY (zakaznik_id) REFERENCES Zakaznik(id)
+);
+
+-- 6. WHERE, LIMIT, GROUP BY
+-- Výběr zaměstnanců, kteří nastoupili po roce 2022
+SELECT * FROM Zamestnanec WHERE datum_nastupu > '2022-01-01';
+
+-- Výběr 3 zaměstnanců s nejvyšší mzdou
+SELECT * FROM Zamestnanec ORDER BY mzda DESC LIMIT 3;
+
+-- Počet zaměstnanců na každé pozici
+SELECT pozice, COUNT(*) FROM Zamestnanec GROUP BY pozice;
+
+-- 7. LIKE, IN, BETWEEN, Vnořené dotazy
+-- Výběr zákazníků, jejichž jméno začíná na 'M'
+SELECT * FROM Zakaznik WHERE jmeno LIKE 'M%';
+
+-- Výběr objednávek s cenou mezi 1000 a 5000 Kč
+SELECT * FROM Objednavka WHERE cena BETWEEN 1000 AND 5000;
+
+-- Vnořený dotaz: Najdi zákazníky, kteří mají alespoň jednu objednávku
+SELECT * FROM Zakaznik WHERE id IN (SELECT zakaznik_id FROM Objednavka);
+
+-- 8. JOIN a spojení tří tabulek
+-- Vytvoření tabulky Produkt
+CREATE TABLE Produkt (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nazev VARCHAR(50),
+    cena DECIMAL(10,2),
+    objednavka_id INT,
+    FOREIGN KEY (objednavka_id) REFERENCES Objednavka(id)
+);
+
+-- Spojení tří tabulek: Zobrazení jména zákazníka, data objednávky a názvu produktu
+SELECT Zakaznik.jmeno, Objednavka.datum_objednavky, Produkt.nazev 
+FROM Zakaznik
+JOIN Objednavka ON Zakaznik.id = Objednavka.zakaznik_id
+JOIN Produkt ON Objednavka.id = Produkt.objednavka_id;

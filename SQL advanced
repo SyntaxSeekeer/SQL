@@ -1,0 +1,118 @@
+```sql
+-- WHERE – Filtrování dat
+-- Najdi všechna auta, která mají maximální rychlost větší než 180 km/h a méně než 5 sedadel.
+SELECT * FROM Automobil
+WHERE max_rychlost > 180 AND pocet_sedadel < 5;
+
+-- Najdi auta vyrobená po roce 2020.
+SELECT * FROM Automobil
+WHERE datum_vyroby > '2020-01-01';
+
+-- LIMIT – Omezení počtu výsledků
+-- Najdi 3 nejrychlejší auta.
+SELECT * FROM Automobil
+ORDER BY max_rychlost DESC
+LIMIT 3;
+
+-- Najdi 5 nejstarších aut.
+SELECT * FROM Automobil
+ORDER BY datum_vyroby ASC
+LIMIT 5;
+
+-- GROUP BY – Seskupování dat
+-- Počet aut podle nutné kvalifikace.
+SELECT nutna_kvalifikace, COUNT(*) AS pocet_aut
+FROM Automobil
+GROUP BY nutna_kvalifikace;
+
+-- Průměrná maximální rychlost podle počtu sedadel.
+SELECT pocet_sedadel, AVG(max_rychlost) AS prumerna_rychlost
+FROM Automobil
+GROUP BY pocet_sedadel;
+
+-- Logické operátory (AND, OR, NOT)
+-- Auta s nosností nad 500 kg a rychlostí pod 160 km/h.
+SELECT * FROM Automobil
+WHERE nosnost > 500 AND max_rychlost < 160;
+
+-- Auta s více než 7 sedadly nebo rychlostí nad 200 km/h.
+SELECT * FROM Automobil
+WHERE pocet_sedadel > 7 OR max_rychlost > 200;
+
+-- Auta, která nevyžadují kvalifikaci D.
+SELECT * FROM Automobil
+WHERE NOT nutna_kvalifikace = 'D';
+
+-- LIKE, IN, BETWEEN – Pokročilé filtrování
+-- Auta se SPZ začínající na '1AB'.
+SELECT * FROM Automobil
+WHERE spz LIKE '1AB%';
+
+-- Auta s maximální rychlostí mezi 150 a 200 km/h.
+SELECT * FROM Automobil
+WHERE max_rychlost BETWEEN 150 AND 200;
+
+-- Auta od výrobců BMW a Audi.
+SELECT * FROM Automobil
+WHERE vyrobce IN ('BMW', 'Audi');
+
+-- Vnořené dotazy (Subqueries)
+-- Najdi auta, která mají vyšší rychlost než průměrná rychlost všech aut.
+SELECT * FROM Automobil
+WHERE max_rychlost > (SELECT AVG(max_rychlost) FROM Automobil);
+
+-- Najdi auta s maximální nosností mezi 500 a 1000 kg.
+SELECT * FROM Automobil
+WHERE nosnost BETWEEN 500 AND 1000;
+
+-- JOIN – Spojování tabulek
+-- Seznam aut s jejich výrobci (INNER JOIN).
+SELECT Automobil.spz, Vyrobce.nazev
+FROM Automobil
+INNER JOIN Vyrobce ON Automobil.vyrobce_id = Vyrobce.id;
+
+-- Všechna auta, i když nemají přiřazeného výrobce (LEFT JOIN).
+SELECT Automobil.spz, Vyrobce.nazev
+FROM Automobil
+LEFT JOIN Vyrobce ON Automobil.vyrobce_id = Vyrobce.id;
+
+-- Seznam řidičů a aut, která řídí (M:N vztah přes spojovací tabulku).
+SELECT Ridic.jmeno, Automobil.spz
+FROM Ridic
+JOIN Ridic_Auto ON Ridic.id = Ridic_Auto.ridic_id
+JOIN Automobil ON Ridic_Auto.auto_id = Automobil.id;
+
+-- Kombinace více funkcí
+-- Najdi 2 nejnovější auta s rychlostí nad 180 km/h.
+SELECT * FROM Automobil
+WHERE max_rychlost > 180
+ORDER BY datum_vyroby DESC
+LIMIT 2;
+
+-- Spojení více tabulek (Join na tři tabulky)
+-- Najdi všechna auta spolu s jejich řidiči a výrobci.
+SELECT Automobil.spz, Vyrobce.nazev AS vyrobce, Ridic.jmeno AS ridic
+FROM Automobil
+JOIN Vyrobce ON Automobil.vyrobce_id = Vyrobce.id
+JOIN Ridic_Auto ON Automobil.id = Ridic_Auto.auto_id
+JOIN Ridic ON Ridic_Auto.ridic_id = Ridic.id;
+
+-- Použití HAVING s GROUP BY
+-- Zobraz kvalifikace, kde je více než 3 auta.
+SELECT nutna_kvalifikace, COUNT(*) AS pocet_aut
+FROM Automobil
+GROUP BY nutna_kvalifikace
+HAVING COUNT(*) > 3;
+
+-- Použití EXISTS
+-- Najdi auta, která mají přiřazeného řidiče.
+SELECT * FROM Automobil
+WHERE EXISTS (SELECT 1 FROM Ridic_Auto WHERE Ridic_Auto.auto_id = Automobil.id);
+
+-- Použití UNION
+-- Spoj seznam aut a řidičů do jednoho výpisu.
+SELECT spz AS jmeno FROM Automobil
+UNION
+SELECT jmeno FROM Ridic;
+```
+
